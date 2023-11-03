@@ -50,8 +50,8 @@ impl ElfHeader {
             e_machine: [0x0, 0x32],
             e_version: [0x0, 0x0, 0x0, 0x1],
             e_entry: [0; 8],
-            e_phoff: [0; 8],
-            e_shoff: [0; 8],
+            e_phoff: [0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8],
+            e_shoff: [0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8],
             e_flags: [0; 4],
             e_ehsize: [0; 2],
             e_phentsize: [0; 2],
@@ -76,15 +76,17 @@ impl ElfHeader {
         file.write(&self.e_machine)?;
         file.write(&self.e_version)?;
 
-        // If 32 bit, these only take up 4
+        // If 32 bit, these only take up 4 bytes each.
         if self.e_ident_class == 2 {
             file.write(&[0x1; 8])?;
             file.write(&self.e_phoff)?;
             file.write(&self.e_shoff)?;
         } else {
             file.write(&[0x2; 4])?;
-            file.write(&self.e_phoff[..4])?;
-            file.write(&self.e_shoff[..4])?;
+            // We take the last 4 bytes, maybe it should depend on endianness?
+            // TODO: investigate if this depends on that
+            file.write(&self.e_phoff[4..])?;
+            file.write(&self.e_shoff[4..])?;
         }
 
         file.write(&self.e_flags)?;
